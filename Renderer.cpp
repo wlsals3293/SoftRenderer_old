@@ -49,14 +49,33 @@ void UpdateFrame(void)
 	degree += 0.1f;
 	degree = fmodf(degree, 360.0f);
 
-	Matrix2 rotMat;
+	Matrix3 rotMat;
 	rotMat.SetRotation(degree);
+	rotMat.Transpose();
+
+
+	static float move = 1;
+	move += 1;
+	float theta = fmodf(move, 360);
+	float pos = sinf(Deg2Rad(theta)) * 150;
+
+
+	float scale = sinf(Deg2Rad(theta)) + 1;
+	Matrix3 scaleMat;
+	scaleMat.SetScale(scale, scale, scale);
+	
+
+	Matrix3 translationMat;
+	translationMat.SetTranslation(pos, pos);
+
+	Matrix3 SR = scaleMat * rotMat;
+	Matrix3 TRS = translationMat * rotMat * scaleMat;
 	
 	for (int i = -nradius; i < nradius; i++)
 	{
 		for (int j = -nradius; j <= nradius; j++)
 		{
-			PutPixel(Vector2(i, j) * rotMat);
+			PutPixel(Vector3(i, j) * TRS);
 		}
 	}
 	
