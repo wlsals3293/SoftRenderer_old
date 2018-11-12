@@ -41,7 +41,7 @@ void UpdateFrame(void)
 	SetColor(255, 0, 0);
 	
 	// Draw a filled circle with radius 100
-	Vector2 center(0.0f, 0.0f);
+	/*Vector2 center(0.0f, 0.0f);
 	float radius = 100.0f;
 	int nradius = (int)radius;
 
@@ -77,8 +77,90 @@ void UpdateFrame(void)
 		{
 			PutPixel(Vector3(i, j) * TRS);
 		}
+	}*/
+
+	static float degree = 0;
+	degree += 1.0f;
+	degree = fmodf(degree, 360.0f);
+
+	Vector3 moveRadius(150.0f, 150.0f);
+
+	// 원
+	Vector3 center(0.0f, 0.0f);
+	float radius = 100.0f;
+	int nradius = (int)radius;
+
+	static int centerCircleR = 255;
+	static int centerCircleG = 0;
+	static int centerCircleB = 0;
+
+	centerCircleR += 1;
+	centerCircleG += 2;
+	centerCircleB += 3;
+
+	if (centerCircleR >= 256)
+		centerCircleR = 0;
+	if (centerCircleG >= 256)
+		centerCircleG = 0;
+	if (centerCircleB >= 256)
+		centerCircleB = 0;
+
+	SetColor(centerCircleR, centerCircleG, centerCircleB);
+
+	float sinVal = sinf(Deg2Rad(degree));
+
+	float posX = sinVal * moveRadius.X;
+	float posY = cosf(Deg2Rad(degree)) * moveRadius.Y;
+
+	Matrix3 translationMat;
+	translationMat.SetTranslation(posX, posY);
+
+	Matrix3 rotMat;
+	rotMat.SetRotation(degree);
+
+	Matrix3 scaleMat;
+	scaleMat.SetScale(sinVal, sinVal, sinVal);
+
+
+	Matrix3 TRSMat = translationMat * rotMat;
+
+
+	for (int i = -nradius; i < nradius; i++) {
+		for (int j = 0/*-nradius*/; j < nradius; j++) {
+			Vector3 ptVec(i, j);
+			if (Vector3::DistSquared(center, ptVec) <= radius * radius) {
+				PutPixel(ptVec * TRSMat);
+			}
+		}
 	}
-	
+
+
+
+	// 사각형
+	sinVal = sinf(Deg2Rad(fmodf(degree + 180, 360)));
+	posX = sinVal * moveRadius.X;
+	posY = cosf(Deg2Rad(fmodf(degree + 180, 360))) * moveRadius.Y;
+	translationMat.SetTranslation(posX, posY);
+
+	Vector3 scale(80.0f, 80.0f);
+	static float squareDegree = 0;
+	squareDegree += 2.0f;
+
+	rotMat.SetRotation(squareDegree);
+	rotMat.Transpose();
+
+	scaleMat.SetScale(sinVal, sinVal, sinVal);
+
+
+	Matrix3 TRSMat2 = translationMat * rotMat * scaleMat;
+
+	for (int i = -scale.X; i < scale.X; i++)
+	{
+		for (int j = -scale.Y; j <= scale.Y; j++)
+		{
+			PutPixel(Vector3(i, j) * TRSMat2);
+		}
+	}
 
 	//Matrix2 scaleMat;
 	//scaleMat.SetScale(2.0f, 0.5f);
