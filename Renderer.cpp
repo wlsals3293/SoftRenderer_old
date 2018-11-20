@@ -5,11 +5,14 @@
 #include "Renderer.h"
 
 #include "Vector.h"
+#include "Vertex.h"
 #include "IntPoint.h"
-#include "Matrix.h"
 
 bool IsInRange(int x, int y);
 void PutPixel(int x, int y);
+void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3);
+void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3);
+
 
 bool IsInRange(int x, int y)
 {
@@ -46,25 +49,94 @@ void DrawLine(const Vector3 &start, const Vector3 &end)
 	}
 }
 
-void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
+void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3)
 {
 	Vector2 minPos = Vector2(INFINITY, INFINITY);
-	Vector2 maxPos = Vector2(INFINITY, INFINITY);
+	Vector2 maxPos = Vector2(-INFINITY, -INFINITY);
+
+	Vector3 p1 = v1.position;
+	Vector3 p2 = v2.position;
+	Vector3 p3 = v3.position;
 
 	if (p1.X < minPos.X) minPos.X = p1.X;
 	if (p1.Y < minPos.Y) minPos.Y = p1.Y;
-	if (p1.X < maxPos.X) maxPos.X = p1.X;
-	if (p1.Y < maxPos.Y) maxPos.Y = p1.Y;
+	if (p1.X > maxPos.X) maxPos.X = p1.X;
+	if (p1.Y > maxPos.Y) maxPos.Y = p1.Y;
 
 	if (p2.X < minPos.X) minPos.X = p2.X;
 	if (p2.Y < minPos.Y) minPos.Y = p2.Y;
-	if (p2.X < maxPos.X) maxPos.X = p2.X;
-	if (p2.Y < maxPos.Y) maxPos.Y = p2.Y;
+	if (p2.X > maxPos.X) maxPos.X = p2.X;
+	if (p2.Y > maxPos.Y) maxPos.Y = p2.Y;
 
 	if (p3.X < minPos.X) minPos.X = p3.X;
 	if (p3.Y < minPos.Y) minPos.Y = p3.Y;
-	if (p3.X < maxPos.X) maxPos.X = p3.X;
-	if (p3.Y < maxPos.Y) maxPos.Y = p2.Y;
+	if (p3.X > maxPos.X) maxPos.X = p3.X;
+	if (p3.Y > maxPos.Y) maxPos.Y = p3.Y;
+
+	Vector3 u = p2 - p1;
+	Vector3 v = p3 - p1;
+	float dotUU = Vector3::Dot(u, u);
+	float dotUV = Vector3::Dot(u, v);
+	float dotVV = Vector3::Dot(v, v);
+	float invDenom = 1.0f / (dotUU * dotVV - dotUV * dotUV);
+
+	IntPoint minPt(minPos);
+	IntPoint maxPt(maxPos);
+
+	for (int x = minPt.X; x < maxPt.X; x++)
+	{
+		for (int y = minPt.Y; y < maxPt.Y; y++)
+		{
+			IntPoint pt(x, y);
+			Vector3 w = pt.ToVector3() - p1;
+			float dotUW = Vector3::Dot(u, w);
+			float dotVW = Vector3::Dot(v, w);
+			float s = (dotVV * dotUW - dotUV * dotVW) * invDenom;
+			float t = (dotUU * dotVW - dotUV * dotUW) * invDenom;
+			if (s >= 0 && t >= 0 && ((s + t) <= 1))
+			{
+				BYTE RV1 = GetRValue(v1.color);
+				BYTE RV2 = GetRValue(v2.color);
+				BYTE RV3 = GetRValue(v3.color);
+
+				BYTE GV1 = GetGValue(v1.color);
+				BYTE GV2 = GetGValue(v2.color);
+				BYTE GV3 = GetGValue(v3.color);
+
+				BYTE BV1 = GetBValue(v1.color);
+				BYTE BV2 = GetBValue(v2.color);
+				BYTE BV3 = GetBValue(v3.color);
+
+				BYTE FinalR = (BYTE)(RV1 * (1 - s - t) + RV2 * s + RV3 * t);
+				BYTE FinalG = (BYTE)(GV1 * (1 - s - t) + GV2 * s + GV3 * t);
+				BYTE FinalB = (BYTE)(BV1 * (1 - s - t) + BV2 * s + BV3 * t);
+
+				SetColor(FinalR, FinalG, FinalB);
+				PutPixel(pt);
+			}
+		}
+	}
+}
+
+void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
+{
+	Vector2 minPos = Vector2(INFINITY, INFINITY);
+	Vector2 maxPos = Vector2(-INFINITY, -INFINITY);
+
+	if (p1.X < minPos.X) minPos.X = p1.X;
+	if (p1.Y < minPos.Y) minPos.Y = p1.Y;
+	if (p1.X > maxPos.X) maxPos.X = p1.X;
+	if (p1.Y > maxPos.Y) maxPos.Y = p1.Y;
+
+	if (p2.X < minPos.X) minPos.X = p2.X;
+	if (p2.Y < minPos.Y) minPos.Y = p2.Y;
+	if (p2.X > maxPos.X) maxPos.X = p2.X;
+	if (p2.Y > maxPos.Y) maxPos.Y = p2.Y;
+
+	if (p3.X < minPos.X) minPos.X = p3.X;
+	if (p3.Y < minPos.Y) minPos.Y = p3.Y;
+	if (p3.X > maxPos.X) maxPos.X = p3.X;
+	if (p3.Y > maxPos.Y) maxPos.Y = p3.Y;
 
 	Vector3 u = p2 - p1;
 	Vector3 v = p3 - p1;
@@ -101,13 +173,54 @@ void UpdateFrame(void)
 	SetColor(32, 128, 255);
 	Clear();
 
-	static float xPos = 0;
-	static float yPos = 0;
-	static float degree = 0;
+	
+	static float theta = 0;
+	static float pos = 0;
 	static float scale = 1;
 
+	// Input 
+	if (GetAsyncKeyState(VK_LEFT)) theta -= 1;
+	if (GetAsyncKeyState(VK_RIGHT)) theta += 1;
+	if (GetAsyncKeyState(VK_UP)) pos += 1;
+	if (GetAsyncKeyState(VK_DOWN)) pos -= 1;
+	if (GetAsyncKeyState(VK_PRIOR)) scale += 0.01f;
+	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.01f;
+
+	// Define Matrix
+	Matrix3 tMat, rMat, sMat, trsMat;
+	sMat.SetScale(scale, scale, 1);
+	rMat.SetRotation(theta);
+	tMat.SetTranslation(pos, pos);
+	trsMat = tMat * rMat * sMat;
+
+	// Draw
+	SetColor(255, 0, 0);
+
+	Vector3 p1 = Vector3::Make2DPoint(-80, -80) * trsMat;
+	Vector3 p2 = Vector3::Make2DPoint(-80, 80) * trsMat;
+	Vector3 p3 = Vector3::Make2DPoint(80, 80) * trsMat;
+	Vector3 p4 = Vector3::Make2DPoint(80, -80) * trsMat;
+
+	Vertex v1(p1, RGB32(255, 0, 0));
+	Vertex v2(p2, RGB32(0, 255, 0));
+	Vertex v3(p3, RGB32(0, 0, 255));
+	Vertex v4(p4, RGB32(255, 255, 255));
+
+	//DrawTriangle(p1, p2, p3);
+	//DrawTriangle(p1, p3, p4);
+	DrawTriangle(v1, v2, v3);
+	DrawTriangle(v1, v3, v4);
+
+
+
+
+	/*static float xPos = 0;
+	static float yPos = 0;
+	static float degree = 0;
+	static float scale = 1;*/
+
 	// Input
-	if (GetAsyncKeyState(VK_LEFT)) degree += 1;
+	/*if (GetAsyncKeyState(VK_LEFT)) degree += 1;
 	if (GetAsyncKeyState(VK_RIGHT)) degree -= 1;
 
 	float radian = Deg2Rad(degree);
@@ -122,25 +235,25 @@ void UpdateFrame(void)
 	}
 
 	if (GetAsyncKeyState(VK_PRIOR)) scale += 0.1f;
-	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.1f;
+	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.1f;*/
 
 
 
 	// Define Matrix
-	Matrix3 tMat;
-	tMat.SetTranslation(xPos, yPos);
+	//Matrix3 tMat;
+	//tMat.SetTranslation(xPos, yPos);
 
-	Matrix3 rMat;
-	rMat.SetRotation(degree);
+	//Matrix3 rMat;
+	//rMat.SetRotation(degree);
 
-	Matrix3 sMat;
-	sMat.SetScale(scale, scale, scale);
+	//Matrix3 sMat;
+	//sMat.SetScale(scale, scale, scale);
 
-	Matrix3 trsMat;
-	trsMat = tMat * rMat * sMat;
+	//Matrix3 trsMat;
+	//trsMat = tMat * rMat * sMat;
 
-	// Draw
-	SetColor(255, 0, 0);
+	//// Draw
+	//SetColor(255, 0, 0);
 
 	// Define Vector Space
 	//Vector3 start = Vector3::Make2DPoint(-20.0f, -10.0f) * trsMat;
@@ -148,10 +261,10 @@ void UpdateFrame(void)
 	//DrawLine(start, end);
 
 
-	Vector3 p1 = Vector3::Make2DPoint(0, 50);
+	/*Vector3 p1 = Vector3::Make2DPoint(0, 50);
 	Vector3 p2 = Vector3::Make2DPoint(-30, -10);
 	Vector3 p3 = Vector3::Make2DPoint(40, 20);
-	DrawTriangle(p1, p2, p3);
+	DrawTriangle(p1, p2, p3);*/
 
 	/*float radius = 100.f;
 	int nradius = (int)radius;

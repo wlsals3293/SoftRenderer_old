@@ -36,6 +36,7 @@ public:
 
 	void SetRotation(float degree)
 	{
+		SetIdentity();
 		float radian = Deg2Rad(degree);
 		_11 = cosf(radian);
 		_12 = -sinf(radian);
@@ -55,6 +56,9 @@ public:
 		float temp = _12;
 		_12 = _21;
 		_21 = temp;
+		temp = _13;
+		_13 = _31;
+		_31 = temp;
 	}
 
 	Matrix3 operator *(const Matrix3& Mat) const;

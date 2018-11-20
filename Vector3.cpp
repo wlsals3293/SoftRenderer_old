@@ -4,7 +4,7 @@
 
 float Vector3::Dist(const Vector3 & V1, const Vector3 & V2)
 {
-	return sqrtf(Vector3::DistSquared(V1, V2));
+	return sqrtf(DistSquared(V1, V2));
 }
 
 float Vector3::DistSquared(const Vector3 & V1, const Vector3 & V2)

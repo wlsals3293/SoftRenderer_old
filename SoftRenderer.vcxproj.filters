@@ -25,6 +25,12 @@
     <Filter Include="App">
       <UniqueIdentifier>{0d6601b9-2612-4bec-a657-0fa5a68b8b21}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Image">
+      <UniqueIdentifier>{f0a26394-96fd-479c-92cb-fe860c93162d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{153bc1bf-ff94-4cf5-94a5-1c6da329e3db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -66,6 +72,15 @@
     <ClInclude Include="Matrix3.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="Bmp.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -91,6 +106,12 @@
     </ClCompile>
     <ClCompile Include="Matrix3.cpp">
       <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Bmp.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
