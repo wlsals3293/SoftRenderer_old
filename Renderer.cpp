@@ -8,9 +8,11 @@
 #include "Vertex.h"
 #include "IntPoint.h"
 
+#include "GameObject.h"
+
 bool IsInRange(int x, int y);
 void PutPixel(int x, int y);
-void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3);
+void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3, const Matrix3 trsMat);
 void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3);
 
 
@@ -49,14 +51,14 @@ void DrawLine(const Vector3 &start, const Vector3 &end)
 	}
 }
 
-void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3)
+void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3, const Matrix3 trsMat)
 {
 	Vector2 minPos = Vector2(INFINITY, INFINITY);
 	Vector2 maxPos = Vector2(-INFINITY, -INFINITY);
 
-	Vector3 p1 = v1.position;
-	Vector3 p2 = v2.position;
-	Vector3 p3 = v3.position;
+	Vector3 p1 = v1.position * trsMat;
+	Vector3 p2 = v2.position * trsMat;
+	Vector3 p3 = v3.position * trsMat;
 
 	if (p1.X < minPos.X) minPos.X = p1.X;
 	if (p1.Y < minPos.Y) minPos.Y = p1.Y;
@@ -95,7 +97,7 @@ void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3)
 			float t = (dotUU * dotVW - dotUV * dotUW) * invDenom;
 			if (s >= 0 && t >= 0 && ((s + t) <= 1))
 			{
-				BYTE RV1 = GetRValue(v1.color);
+				/*BYTE RV1 = GetRValue(v1.color);
 				BYTE RV2 = GetRValue(v2.color);
 				BYTE RV3 = GetRValue(v3.color);
 
@@ -109,10 +111,21 @@ void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3)
 
 				BYTE FinalR = (BYTE)(RV1 * (1 - s - t) + RV2 * s + RV3 * t);
 				BYTE FinalG = (BYTE)(GV1 * (1 - s - t) + GV2 * s + GV3 * t);
-				BYTE FinalB = (BYTE)(BV1 * (1 - s - t) + BV2 * s + BV3 * t);
+				BYTE FinalB = (BYTE)(BV1 * (1 - s - t) + BV2 * s + BV3 * t);*/
 
-				SetColor(FinalR, FinalG, FinalB);
-				PutPixel(pt);
+				if (g_Texture->IsLoaded()) {
+					Vector2 baryUV = v1.uv * (1 - s - t) + v2.uv * s + v3.uv * t;
+					ULONG color = g_Texture->GetTexturePixel(baryUV);
+
+					BYTE FinalR = GetRValue(color);
+					BYTE FinalG = GetGValue(color);
+					BYTE FinalB = GetBValue(color);
+
+					SetColor(FinalR, FinalG, FinalB);
+					PutPixel(pt);
+				}
+
+				
 			}
 		}
 	}
@@ -166,6 +179,24 @@ void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 	}
 }
 
+void DrawGameObject(const GameObject2D &obj) {
+	// Define Matrix
+	Matrix3 tMat, rMat, sMat, trsMat;
+	sMat.SetScale(obj.Transform.Scale.X, obj.Transform.Scale.Y, 1);
+	rMat.SetRotation(obj.Transform.Angle);
+	tMat.SetTranslation(obj.Transform.Position.X, obj.Transform.Position.Y);
+	trsMat = tMat * rMat * sMat;
+
+	for (int i = 0; i < obj.Mesh.TriangleCount; i++)
+	{
+		DrawTriangle(
+			obj.Mesh.Triangles[i].vt[0],
+			obj.Mesh.Triangles[i].vt[1],
+			obj.Mesh.Triangles[i].vt[2],
+			trsMat);
+	}
+}
+
 
 void UpdateFrame(void)
 {
@@ -174,44 +205,38 @@ void UpdateFrame(void)
 	Clear();
 
 	
-	static float theta = 0;
-	static float pos = 0;
+	static float degree = 0;
+	static float posX = 0;
+	static float posY = 0;
 	static float scale = 1;
 
 	// Input 
-	if (GetAsyncKeyState(VK_LEFT)) theta -= 1;
-	if (GetAsyncKeyState(VK_RIGHT)) theta += 1;
-	if (GetAsyncKeyState(VK_UP)) pos += 1;
-	if (GetAsyncKeyState(VK_DOWN)) pos -= 1;
+	if (GetAsyncKeyState(VK_LEFT)) degree += 1;
+	if (GetAsyncKeyState(VK_RIGHT)) degree -= 1;
+
+	float radian = Deg2Rad(degree);
+	float speed = 5;
+
+	if (GetAsyncKeyState(VK_UP)) {
+		posX += cosf(radian) * speed;
+		posY += sinf(radian) * speed;
+	}
+	if (GetAsyncKeyState(VK_DOWN)) {
+		posX -= cosf(radian) * speed;
+		posY -= sinf(radian) * speed;
+	}
 	if (GetAsyncKeyState(VK_PRIOR)) scale += 0.01f;
 	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.01f;
 
-	// Define Matrix
-	Matrix3 tMat, rMat, sMat, trsMat;
-	sMat.SetScale(scale, scale, 1);
-	rMat.SetRotation(theta);
-	tMat.SetTranslation(pos, pos);
-	trsMat = tMat * rMat * sMat;
+	gameObject1.Transform.Angle = degree;
+	gameObject1.Transform.Position.X = posX;
+	gameObject1.Transform.Position.Y = posY;
+	gameObject1.Transform.Scale.X = scale;
+	gameObject1.Transform.Scale.Y = scale;
 
-	// Draw
 	SetColor(255, 0, 0);
 
-	Vector3 p1 = Vector3::Make2DPoint(-80, -80) * trsMat;
-	Vector3 p2 = Vector3::Make2DPoint(-80, 80) * trsMat;
-	Vector3 p3 = Vector3::Make2DPoint(80, 80) * trsMat;
-	Vector3 p4 = Vector3::Make2DPoint(80, -80) * trsMat;
-
-	Vertex v1(p1, RGB32(255, 0, 0));
-	Vertex v2(p2, RGB32(0, 255, 0));
-	Vertex v3(p3, RGB32(0, 0, 255));
-	Vertex v4(p4, RGB32(255, 255, 255));
-
-	//DrawTriangle(p1, p2, p3);
-	//DrawTriangle(p1, p3, p4);
-	DrawTriangle(v1, v2, v3);
-	DrawTriangle(v1, v3, v4);
-
-
+	DrawGameObject(gameObject1);
 
 
 	/*static float xPos = 0;

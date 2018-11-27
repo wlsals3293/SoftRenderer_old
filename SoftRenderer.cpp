@@ -6,10 +6,14 @@
 #include "GDIHelper.h"
 #include "Renderer.h"
 
+
 int g_nClientWidth = 640;
 int g_nClientHeight = 480;
 bool g_bIsActive;
 Texture* g_Texture = NULL;
+
+GameObject2D gameObject1;
+
 
 #define MAX_LOADSTRING 100
 
@@ -38,6 +42,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // TODO: 여기에 코드를 입력합니다.
 	g_Texture = new Texture();
+
+	Vertex v1(Vector3::Make2DPoint(-80, -80), RGB32(255, 0, 0), Vector2(0, 1));
+	Vertex v2(Vector3::Make2DPoint(-80, 80), RGB32(0, 255, 0), Vector2(0, 0));
+	Vertex v3(Vector3::Make2DPoint(80, 80), RGB32(0, 0, 255), Vector2(1, 0));
+	Vertex v4(Vector3::Make2DPoint(80, -80), RGB32(255, 255, 255), Vector2(1, 1));
+
+	Triangle* triangles = new Triangle[2];
+	triangles[0] = Triangle(v1, v2, v3);
+	triangles[1] = Triangle(v1, v3, v4);
+
+	gameObject1.Mesh.Triangles = triangles;
+	gameObject1.Mesh.TriangleCount = 2;
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
