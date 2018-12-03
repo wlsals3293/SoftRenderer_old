@@ -17,6 +17,11 @@ void BufferSwap()
 	BitBlt(hScreenDC, 0, 0, g_nClientWidth, g_nClientHeight, hMemoryDC, 0, 0, SRCCOPY);
 }
 
+void SetColor(ULONG color)
+{
+	g_CurrentColor = color;
+}
+
 void SetColor(BYTE r, BYTE g, BYTE b)
 {
 	g_CurrentColor = RGB(b, g, r);

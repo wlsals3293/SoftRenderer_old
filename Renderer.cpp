@@ -97,35 +97,33 @@ void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3, const Ma
 			float t = (dotUU * dotVW - dotUV * dotUW) * invDenom;
 			if (s >= 0 && t >= 0 && ((s + t) <= 1))
 			{
-				/*BYTE RV1 = GetRValue(v1.color);
-				BYTE RV2 = GetRValue(v2.color);
-				BYTE RV3 = GetRValue(v3.color);
-
-				BYTE GV1 = GetGValue(v1.color);
-				BYTE GV2 = GetGValue(v2.color);
-				BYTE GV3 = GetGValue(v3.color);
-
-				BYTE BV1 = GetBValue(v1.color);
-				BYTE BV2 = GetBValue(v2.color);
-				BYTE BV3 = GetBValue(v3.color);
-
-				BYTE FinalR = (BYTE)(RV1 * (1 - s - t) + RV2 * s + RV3 * t);
-				BYTE FinalG = (BYTE)(GV1 * (1 - s - t) + GV2 * s + GV3 * t);
-				BYTE FinalB = (BYTE)(BV1 * (1 - s - t) + BV2 * s + BV3 * t);*/
+				ULONG finalColor = RGB32(255, 0, 0);
 
 				if (g_Texture->IsLoaded()) {
 					Vector2 baryUV = v1.uv * (1 - s - t) + v2.uv * s + v3.uv * t;
-					ULONG color = g_Texture->GetTexturePixel(baryUV);
-
-					BYTE FinalR = GetRValue(color);
-					BYTE FinalG = GetGValue(color);
-					BYTE FinalB = GetBValue(color);
-
-					SetColor(FinalR, FinalG, FinalB);
-					PutPixel(pt);
+					finalColor = g_Texture->GetTexturePixel(baryUV);
 				}
+				else {
+					BYTE RV1 = GetRValue(v1.color);
+					BYTE RV2 = GetRValue(v2.color);
+					BYTE RV3 = GetRValue(v3.color);
 
-				
+					BYTE GV1 = GetGValue(v1.color);
+					BYTE GV2 = GetGValue(v2.color);
+					BYTE GV3 = GetGValue(v3.color);
+
+					BYTE BV1 = GetBValue(v1.color);
+					BYTE BV2 = GetBValue(v2.color);
+					BYTE BV3 = GetBValue(v3.color);
+
+					BYTE FinalR = (BYTE)(RV1 * (1 - s - t) + RV2 * s + RV3 * t);
+					BYTE FinalG = (BYTE)(GV1 * (1 - s - t) + GV2 * s + GV3 * t);
+					BYTE FinalB = (BYTE)(BV1 * (1 - s - t) + BV2 * s + BV3 * t);
+
+					finalColor = RGB32(FinalR, FinalG, FinalB);
+				}
+				SetColor(finalColor);
+				PutPixel(pt);
 			}
 		}
 	}
@@ -182,9 +180,9 @@ void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 void DrawGameObject(const GameObject2D &obj) {
 	// Define Matrix
 	Matrix3 tMat, rMat, sMat, trsMat;
+	tMat.SetTranslation(obj.Transform.Position.X, obj.Transform.Position.Y);
 	sMat.SetScale(obj.Transform.Scale.X, obj.Transform.Scale.Y, 1);
 	rMat.SetRotation(obj.Transform.Angle);
-	tMat.SetTranslation(obj.Transform.Position.X, obj.Transform.Position.Y);
 	trsMat = tMat * rMat * sMat;
 
 	for (int i = 0; i < obj.Mesh.TriangleCount; i++)
@@ -218,236 +216,29 @@ void UpdateFrame(void)
 	float speed = 5;
 
 	if (GetAsyncKeyState(VK_UP)) {
-		posX += cosf(radian) * speed;
-		posY += sinf(radian) * speed;
+		posY += cosf(radian) * speed;
+		posX -= sinf(radian) * speed;
 	}
 	if (GetAsyncKeyState(VK_DOWN)) {
-		posX -= cosf(radian) * speed;
-		posY -= sinf(radian) * speed;
+		posY -= cosf(radian) * speed;
+		posX += sinf(radian) * speed;
 	}
 	if (GetAsyncKeyState(VK_PRIOR)) scale += 0.01f;
 	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.01f;
 
+	// Apply Transform
 	gameObject1.Transform.Angle = degree;
 	gameObject1.Transform.Position.X = posX;
 	gameObject1.Transform.Position.Y = posY;
 	gameObject1.Transform.Scale.X = scale;
 	gameObject1.Transform.Scale.Y = scale;
 
+	// Draw
 	SetColor(255, 0, 0);
 
 	DrawGameObject(gameObject1);
 
-
-	/*static float xPos = 0;
-	static float yPos = 0;
-	static float degree = 0;
-	static float scale = 1;*/
-
-	// Input
-	/*if (GetAsyncKeyState(VK_LEFT)) degree += 1;
-	if (GetAsyncKeyState(VK_RIGHT)) degree -= 1;
-
-	float radian = Deg2Rad(degree);
-
-	if (GetAsyncKeyState(VK_UP)) {
-		xPos += cosf(radian);
-		yPos += sinf(radian);
-	}
-	if (GetAsyncKeyState(VK_DOWN)) {
-		xPos -= cosf(radian);
-		yPos -= sinf(radian);
-	}
-
-	if (GetAsyncKeyState(VK_PRIOR)) scale += 0.1f;
-	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.1f;*/
-
-
-
-	// Define Matrix
-	//Matrix3 tMat;
-	//tMat.SetTranslation(xPos, yPos);
-
-	//Matrix3 rMat;
-	//rMat.SetRotation(degree);
-
-	//Matrix3 sMat;
-	//sMat.SetScale(scale, scale, scale);
-
-	//Matrix3 trsMat;
-	//trsMat = tMat * rMat * sMat;
-
-	//// Draw
-	//SetColor(255, 0, 0);
-
-	// Define Vector Space
-	//Vector3 start = Vector3::Make2DPoint(-20.0f, -10.0f) * trsMat;
-	//Vector3 end = Vector3::Make2DPoint(10.0f, 10.0f) * trsMat;
-	//DrawLine(start, end);
-
-
-	/*Vector3 p1 = Vector3::Make2DPoint(0, 50);
-	Vector3 p2 = Vector3::Make2DPoint(-30, -10);
-	Vector3 p3 = Vector3::Make2DPoint(40, 20);
-	DrawTriangle(p1, p2, p3);*/
-
-	/*float radius = 100.f;
-	int nradius = (int)radius;
-	for (int i = -nradius; i <= nradius; i++)
-	{
-		for (int j = -nradius; j <= nradius; j++)
-		{
-			PutPixel(Vector3((float)i, (float)j) * tsMat);
-		}
-	}*/
-
+	
 	// Buffer Swap 
 	BufferSwap();
 }
-
-
-// Draw a filled circle with radius 100
-/*Vector2 center(0.0f, 0.0f);
-float radius = 100.0f;
-int nradius = (int)radius;
-
-static float degree = 0;
-degree += 0.1f;
-degree = fmodf(degree, 360.0f);
-
-Matrix3 rotMat;
-rotMat.SetRotation(degree);
-rotMat.Transpose();
-
-
-static float move = 1;
-move += 1;
-float theta = fmodf(move, 360);
-float pos = sinf(Deg2Rad(theta)) * 150;
-
-
-float scale = sinf(Deg2Rad(theta)) + 1;
-Matrix3 scaleMat;
-scaleMat.SetScale(scale, scale, scale);
-
-
-Matrix3 translationMat;
-translationMat.SetTranslation(pos, pos);
-
-Matrix3 SR = scaleMat * rotMat;
-Matrix3 TRS = translationMat * rotMat * scaleMat;
-
-for (int i = -nradius; i < nradius; i++)
-{
-for (int j = -nradius; j <= nradius; j++)
-{
-PutPixel(Vector3(i, j) * TRS);
-}
-}*/
-
-//static float degree = 0;
-//degree += 1.0f;
-//degree = fmodf(degree, 360.0f);
-
-//Vector3 moveRadius(150.0f, 150.0f);
-
-//// 원
-//Vector3 center(0.0f, 0.0f);
-//float radius = 100.0f;
-//int nradius = (int)radius;
-
-//static int centerCircleR = 255;
-//static int centerCircleG = 0;
-//static int centerCircleB = 0;
-
-//centerCircleR += 1;
-//centerCircleG += 2;
-//centerCircleB += 3;
-
-//if (centerCircleR >= 256)
-//	centerCircleR = 0;
-//if (centerCircleG >= 256)
-//	centerCircleG = 0;
-//if (centerCircleB >= 256)
-//	centerCircleB = 0;
-
-//SetColor(centerCircleR, centerCircleG, centerCircleB);
-
-//float sinVal = sinf(Deg2Rad(degree));
-
-//float posX = sinVal * moveRadius.X;
-//float posY = cosf(Deg2Rad(degree)) * moveRadius.Y;
-
-//Matrix3 translationMat;
-//translationMat.SetTranslation(posX, posY);
-
-//Matrix3 rotMat;
-//rotMat.SetRotation(degree);
-
-//Matrix3 scaleMat;
-//scaleMat.SetScale(sinVal, sinVal, sinVal);
-
-
-//Matrix3 TRSMat = translationMat * rotMat;
-
-
-//for (int i = -nradius; i < nradius; i++) {
-//	for (int j = 0/*-nradius*/; j < nradius; j++) {
-//		Vector3 ptVec(i, j);
-//		if (Vector3::DistSquared(center, ptVec) <= radius * radius) {
-//			PutPixel(ptVec * TRSMat);
-//		}
-//	}
-//}
-
-
-
-//// 사각형
-//sinVal = sinf(Deg2Rad(fmodf(degree + 180, 360)));
-//posX = sinVal * moveRadius.X;
-//posY = cosf(Deg2Rad(fmodf(degree + 180, 360))) * moveRadius.Y;
-//translationMat.SetTranslation(posX, posY);
-
-//Vector3 scale(80.0f, 80.0f);
-//static float squareDegree = 0;
-//squareDegree += 2.0f;
-
-//rotMat.SetRotation(squareDegree);
-//rotMat.Transpose();
-
-//scaleMat.SetScale(sinVal, sinVal, sinVal);
-
-
-//Matrix3 TRSMat2 = translationMat * rotMat * scaleMat;
-
-//for (int i = -scale.X; i < scale.X; i++)
-//{
-//	for (int j = -scale.Y; j <= scale.Y; j++)
-//	{
-//		PutPixel(Vector3(i, j) * TRSMat2);
-//	}
-//}
-
-//Matrix2 scaleMat;
-//scaleMat.SetScale(2.0f, 0.5f);
-
-//Matrix2 rotMat;
-//rotMat.SetRotation(30.0f);
-
-//Matrix2 SRMat = scaleMat * rotMat;
-//Matrix2 RSMat = rotMat * scaleMat;
-
-//
-//for (int i = -nradius; i < nradius; i++) {
-//	for (int j = 0/*-nradius*/; j < nradius; j++) {
-//		IntPoint pt(i, j);
-//		Vector2 ptVec = pt.ToVector2();
-//		if (Vector2::DistSquared(center, ptVec) <= radius * radius) {
-//			//IntPoint scaledPt(ptVec * scaleMat);
-//			//IntPoint rotateedPt(scaledPt.ToVector2() * rotMat);
-//			//IntPoint SRPt(ptVec * SRMat);
-//			IntPoint RSPt(ptVec * RSMat);
-//			PutPixel(RSPt);
-//		}
-//	}
-//}

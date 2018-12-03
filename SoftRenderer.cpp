@@ -43,10 +43,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // TODO: 여기에 코드를 입력합니다.
 	g_Texture = new Texture();
 
-	Vertex v1(Vector3::Make2DPoint(-80, -80), RGB32(255, 0, 0), Vector2(0, 1));
-	Vertex v2(Vector3::Make2DPoint(-80, 80), RGB32(0, 255, 0), Vector2(0, 0));
-	Vertex v3(Vector3::Make2DPoint(80, 80), RGB32(0, 0, 255), Vector2(1, 0));
-	Vertex v4(Vector3::Make2DPoint(80, -80), RGB32(255, 255, 255), Vector2(1, 1));
+	Vertex v1(Vector3::Make2DPoint(-80, -80), RGB32(255, 0, 0), Vector2(0.125f, 0.25f));
+	Vertex v2(Vector3::Make2DPoint(-80, 80), RGB32(0, 255, 0), Vector2(0.125f, 0.125f));
+	Vertex v3(Vector3::Make2DPoint(80, 80), RGB32(0, 0, 255), Vector2(0.25f, 0.125f));
+	Vertex v4(Vector3::Make2DPoint(80, -80), RGB32(255, 255, 255), Vector2(0.25f, 0.25f));
 
 	Triangle* triangles = new Triangle[2];
 	triangles[0] = Triangle(v1, v2, v3);
