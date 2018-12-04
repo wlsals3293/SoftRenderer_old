@@ -8,6 +8,7 @@
 #include "Vertex.h"
 #include "IntPoint.h"
 
+#include "Camera.h"
 #include "GameObject.h"
 
 bool IsInRange(int x, int y);
@@ -51,14 +52,14 @@ void DrawLine(const Vector3 &start, const Vector3 &end)
 	}
 }
 
-void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3, const Matrix3 trsMat)
+void DrawTriangle(const Vertex &v1, const Vertex &v2, const Vertex &v3, const Matrix3 &trsMat, const Matrix3 &camMat)
 {
 	Vector2 minPos = Vector2(INFINITY, INFINITY);
 	Vector2 maxPos = Vector2(-INFINITY, -INFINITY);
 
-	Vector3 p1 = v1.position * trsMat;
-	Vector3 p2 = v2.position * trsMat;
-	Vector3 p3 = v3.position * trsMat;
+	Vector3 p1 = v1.position * trsMat * camMat;
+	Vector3 p2 = v2.position * trsMat * camMat;
+	Vector3 p3 = v3.position * trsMat * camMat;
 
 	if (p1.X < minPos.X) minPos.X = p1.X;
 	if (p1.Y < minPos.Y) minPos.Y = p1.Y;
@@ -177,21 +178,21 @@ void DrawTriangle(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 	}
 }
 
-void DrawGameObject(const GameObject2D &obj) {
+void DrawGameObject(const GameObject2D &obj, const Matrix3 &camMatrix) {
 	// Define Matrix
 	Matrix3 tMat, rMat, sMat, trsMat;
-	tMat.SetTranslation(obj.Transform.Position.X, obj.Transform.Position.Y);
-	sMat.SetScale(obj.Transform.Scale.X, obj.Transform.Scale.Y, 1);
-	rMat.SetRotation(obj.Transform.Angle);
+	tMat.SetTranslation(obj.transform.position.X, obj.transform.position.Y);
+	sMat.SetScale(obj.transform.scale.X, obj.transform.scale.Y, 1);
+	rMat.SetRotation(obj.transform.angle);
 	trsMat = tMat * rMat * sMat;
 
-	for (int i = 0; i < obj.Mesh.TriangleCount; i++)
+	for (int i = 0; i < obj.mesh.TriangleCount; i++)
 	{
 		DrawTriangle(
-			obj.Mesh.Triangles[i].vt[0],
-			obj.Mesh.Triangles[i].vt[1],
-			obj.Mesh.Triangles[i].vt[2],
-			trsMat);
+			obj.mesh.Triangles[i].vt[0],
+			obj.mesh.Triangles[i].vt[1],
+			obj.mesh.Triangles[i].vt[2],
+			trsMat, camMatrix);
 	}
 }
 
@@ -202,41 +203,71 @@ void UpdateFrame(void)
 	SetColor(32, 128, 255);
 	Clear();
 
+	static Camera2D cam;
 	
 	static float degree = 0;
 	static float posX = 0;
 	static float posY = 0;
 	static float scale = 1;
 
-	// Input 
-	if (GetAsyncKeyState(VK_LEFT)) degree += 1;
-	if (GetAsyncKeyState(VK_RIGHT)) degree -= 1;
-
-	float radian = Deg2Rad(degree);
 	float speed = 5;
 
+	// Input
+	bool camUpdate = false;
+
+
+	if (GetAsyncKeyState(VK_HOME)) {
+		degree += 1;
+		camUpdate = true;
+	}
+	if (GetAsyncKeyState(VK_END)) {
+		degree -= 1;
+		camUpdate = true;
+	}
+
+	float radian = Deg2Rad(degree);
+	static float nine = Deg2Rad(90);
+
+	if (GetAsyncKeyState(VK_LEFT)) {
+		posX -= cosf(radian) * speed;
+		posY -= sinf(radian) * speed;
+		camUpdate = true;
+	}
+	if (GetAsyncKeyState(VK_RIGHT)) {
+		posX += cosf(radian) * speed;
+		posY += sinf(radian) * speed;
+		camUpdate = true;
+	}
 	if (GetAsyncKeyState(VK_UP)) {
-		posY += cosf(radian) * speed;
-		posX -= sinf(radian) * speed;
+		posX += cosf(radian + nine) * speed;
+		posY += sinf(radian + nine) * speed;
+		camUpdate = true;
 	}
 	if (GetAsyncKeyState(VK_DOWN)) {
-		posY -= cosf(radian) * speed;
-		posX += sinf(radian) * speed;
+		posX -= cosf(radian + nine) * speed;
+		posY -= sinf(radian + nine) * speed;
+		camUpdate = true;
 	}
+	
+
 	if (GetAsyncKeyState(VK_PRIOR)) scale += 0.01f;
 	if (GetAsyncKeyState(VK_NEXT)) scale -= 0.01f;
 
-	// Apply Transform
-	gameObject1.Transform.Angle = degree;
-	gameObject1.Transform.Position.X = posX;
-	gameObject1.Transform.Position.Y = posY;
-	gameObject1.Transform.Scale.X = scale;
-	gameObject1.Transform.Scale.Y = scale;
+	if (camUpdate)
+	{
+		// Apply Transform
+		cam.SetPosition(posX, posY);
+		cam.SetRotation(degree);
+	}
 
 	// Draw
 	SetColor(255, 0, 0);
 
-	DrawGameObject(gameObject1);
+	DrawGameObject(gameObject1, cam.inverseMatrix);
+	DrawGameObject(gameObject2, cam.inverseMatrix);
+	DrawGameObject(gameObject3, cam.inverseMatrix);
+	DrawGameObject(gameObject4, cam.inverseMatrix);
+	DrawGameObject(gameObject5, cam.inverseMatrix);
 
 	
 	// Buffer Swap 

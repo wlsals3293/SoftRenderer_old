@@ -8,8 +8,19 @@ struct GameObject2D
 {
 	GameObject2D() {}
 	GameObject2D(Transform2D InTransform, Mesh InMesh)
-		: Transform(InTransform), Mesh(InMesh) {}
+		: transform(InTransform), mesh(InMesh) {}
 public:
-	Mesh Mesh;
-	Transform2D Transform;
+	Mesh mesh;
+	Transform2D transform;
+
+	void SetPosition(float InX, float InY)
+	{
+		transform.position.X = InX;
+		transform.position.Y = InY;
+	}
+
+	void SetRotation(float degree)
+	{
+		transform.angle = degree;
+	}
 };

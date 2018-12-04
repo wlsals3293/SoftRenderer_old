@@ -13,6 +13,10 @@ bool g_bIsActive;
 Texture* g_Texture = NULL;
 
 GameObject2D gameObject1;
+GameObject2D gameObject2;
+GameObject2D gameObject3;
+GameObject2D gameObject4;
+GameObject2D gameObject5;
 
 
 #define MAX_LOADSTRING 100
@@ -43,17 +47,37 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // TODO: 여기에 코드를 입력합니다.
 	g_Texture = new Texture();
 
-	Vertex v1(Vector3::Make2DPoint(-80, -80), RGB32(255, 0, 0), Vector2(0.125f, 0.25f));
-	Vertex v2(Vector3::Make2DPoint(-80, 80), RGB32(0, 255, 0), Vector2(0.125f, 0.125f));
-	Vertex v3(Vector3::Make2DPoint(80, 80), RGB32(0, 0, 255), Vector2(0.25f, 0.125f));
-	Vertex v4(Vector3::Make2DPoint(80, -80), RGB32(255, 255, 255), Vector2(0.25f, 0.25f));
+	Vertex v1(Vector3::Make2DPoint(-40, -40), RGB32(255, 0, 0), Vector2(0.125f, 0.25f));
+	Vertex v2(Vector3::Make2DPoint(-40, 40), RGB32(0, 255, 0), Vector2(0.125f, 0.125f));
+	Vertex v3(Vector3::Make2DPoint(40, 40), RGB32(0, 0, 255), Vector2(0.25f, 0.125f));
+	Vertex v4(Vector3::Make2DPoint(40, -40), RGB32(255, 255, 255), Vector2(0.25f, 0.25f));
 
 	Triangle* triangles = new Triangle[2];
 	triangles[0] = Triangle(v1, v2, v3);
 	triangles[1] = Triangle(v1, v3, v4);
 
-	gameObject1.Mesh.Triangles = triangles;
-	gameObject1.Mesh.TriangleCount = 2;
+	gameObject1.mesh.Triangles = triangles;
+	gameObject1.mesh.TriangleCount = 2;
+
+	gameObject2.mesh.Triangles = triangles;
+	gameObject2.mesh.TriangleCount = 2;
+
+	gameObject3.mesh.Triangles = triangles;
+	gameObject3.mesh.TriangleCount = 2;
+
+	gameObject4.mesh.Triangles = triangles;
+	gameObject4.mesh.TriangleCount = 2;
+
+	gameObject5.mesh.Triangles = triangles;
+	gameObject5.mesh.TriangleCount = 2;
+
+
+	gameObject1.SetPosition(30, 60);
+	gameObject2.SetPosition(300, -40);
+	gameObject3.SetPosition(200, 56);
+	gameObject4.SetPosition(-300, 0);
+	gameObject5.SetPosition(-180, 160);
+
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);

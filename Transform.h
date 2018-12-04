@@ -6,12 +6,12 @@
 struct Transform2D
 {
 public:
-	Transform2D() : Angle(0), Scale(Vector2(1,1)) {}
+	Transform2D() : angle(0), scale(Vector2(1,1)) {}
 	Transform2D(Vector2 InPosition, float InAngle, Vector2 InScale)
-		: Position(InPosition), Angle(InAngle), Scale(InScale) {}
+		: position(InPosition), angle(InAngle), scale(InScale) {}
 
 public:
-	Vector2 Position;
-	float Angle;
-	Vector2 Scale;
+	Vector2 position;
+	float angle;
+	Vector2 scale;
 };
